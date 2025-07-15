@@ -10,8 +10,8 @@ from pinecone import Pinecone
 
 # Config
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-PINECONE_INDEX_NAME = "multilingual-e5-large-index"
-PINECONE_NAMESPACE = "gov-terms"
+PINECONE_INDEX_NAME = "all-e5-large"
+PINECONE_NAMESPACE = "gov-terms2"
 GLOSSARY_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "combined_glossary.json")
 
 logging.basicConfig(level=logging.INFO)
@@ -29,10 +29,11 @@ logger.info(f"Loaded {len(records)} records from {GLOSSARY_PATH}")
 # Prepare Pinecone records
 pinecone_records = []
 for i, rec in enumerate(records):
-    # Compose a unique id: term_01, term_02, ...
+    # Compose a unique id: term_01, term_02, ...  
     rec_id = f"term_{i+1:02d}"
-    text = rec.get("Term", "")
+    Term = rec.get("Term", "")
     Defintion = rec.get("Definition", "")
+    text = Term + ": " + Defintion
     Entity = rec.get("Entity", "")
     Portfolio = rec.get("Portfolio", "")
     BodyType = rec.get("BodyType", "")
