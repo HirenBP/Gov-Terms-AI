@@ -1,0 +1,21 @@
+# ============================================================================
+# Gov Terms AI - Python Dependencies (Cleaned)
+# ============================================================================
+# This file contains only the Python dependencies actually used in the project
+
+# FastAPI Backend - Core dependencies
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+
+# Vector Database
+pinecone>=3.0.0
+
+# AI APIs
+google-generativeai>=0.3.0
+
+# Utilities
+python-dotenv>=1.0.0
+
+# Development (optional - remove for production)
+# pytest>=7.0.0
+# pytest-asyncio>=0.20.0

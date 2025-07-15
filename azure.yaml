@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: gov-terms-ai
+metadata:
+  template: gov-terms-ai@0.0.1-beta
+
+# Infrastructure configuration
+infra:
+  provider: bicep
+  path: infra
+
+# Services configuration
+services:
+  # React frontend - deployed to Azure Static Web Apps using SWA CLI
+  # Note: Deploy manually with: swa deploy ./frontend/build --env production
+  frontend:
+    project: frontend
+    language: js
+    host: staticwebapp
+    
+  # FastAPI backend - deployed to Azure Container Apps
+  backend:
+    project: backend
+    language: py
+    host: containerapp
+
+# Environment variables and hooks
+hooks:
+  postprovision:
+    shell: pwsh
+    run: |
+      Write-Host "Infrastructure provisioned successfully!"
+      Write-Host "Frontend URL: $(azd env get-values --output json | ConvertFrom-Json | Select-Object -ExpandProperty AZURE_STATIC_WEB_APP_URL)"
+      Write-Host "Backend URL: $(azd env get-values --output json | ConvertFrom-Json | Select-Object -ExpandProperty AZURE_CONTAINER_APP_URL)"
+      
+  predeploy:
+    shell: pwsh
+    run: |
+      Write-Host "Preparing deployment..."
+      # Build frontend for production
+      cd frontend
+      npm install
+      npm run build
+      cd ..
