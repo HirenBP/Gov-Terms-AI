@@ -33,19 +33,17 @@ export const sendChatMessage = async (message, chatHistory = []) => {
       console.log('Processing source:', source);
       return {
         score: source.score,
-        id: source.id,
         text: source.text,
-        definition: source.definition,
         entity: source.entity,
-        body_type: source.body_type,
         portfolio: source.portfolio,
         url: source.url,
       };
     });
 
     return {
-      response: data.response,
-      sources: processedSources, // Use processed sources
+      response: data.ai_response,
+      sources: processedSources, // All sources for debugging
+      selectedSource: data.selected_source, // The source Gemini actually used
       query: data.query,
       timestamp: data.timestamp,
     };

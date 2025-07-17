@@ -8,10 +8,8 @@ yarn-error.log*
 package-lock.json.backup
 .npmrc
 
-# Production builds
-frontend/build/
-build/
-dist/
+# Pinecone comparision
+backend/pinecone_search.py
 
 # Environment variables
 .env

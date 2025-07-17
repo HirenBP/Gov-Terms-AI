@@ -15,7 +15,6 @@ const HelpPanel = () => (
       <li>"What does NDIS stand for?"</li>
       <li>"What is IOF"</li>
       <li>"What is FaHCSIA?"</li>
-      <li>"Define machinery of government"</li>
     </ul>
     
     <h3>Features</h3>
