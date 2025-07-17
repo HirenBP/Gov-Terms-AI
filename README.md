@@ -6,6 +6,7 @@
 
 - 🔍 **Semantic Search**: Find relevant government terms using advanced vector similarity search
 - 🤖 **AI-Enhanced Responses**: Get conversational explanations powered by Google's Gemini 2.0 Flash
+- 🎯 **Intelligent Source Tracking**: AI automatically selects and displays the most relevant source for each response
 - 📊 **Rich Knowledge Base**: 7,630+ government terms from Australian agencies
 - 💬 **Chat Interface**: Intuitive chat-based user interface
 - 🔧 **Modular Architecture**: Clean separation between frontend and backend
@@ -33,6 +34,14 @@
                        │  AI Responses   │
                        └─────────────────┘
 ```
+
+### 🎯 Intelligent Source Selection Flow
+
+1. **Query Processing**: User submits a question about government terminology
+2. **Vector Search**: Pinecone returns top 3 most relevant sources with similarity scores
+3. **AI Analysis**: Gemini 2.0 Flash analyzes all 3 sources and selects the most appropriate one
+4. **Smart Response**: System returns structured response with selected source highlighted
+5. **Frontend Display**: UI shows only the source that was actually used by the AI
 
 ## 📁 Project Structure
 
@@ -216,13 +225,47 @@ npm run build
 cd backend
 
 # Test API health
-curl http://localhost:8000/api/health
+curl http://localhost:8000/health
 
-# Test chat endpoint
-curl -X POST http://localhost:8000/api/chat \
+# Test query endpoint with intelligent source selection
+curl -X POST http://localhost:8000/api/query \
   -H "Content-Type: application/json" \
   -d '{"query": "What does NDIA stand for?"}'
 ```
+
+### API Response Format
+
+The `/api/query` endpoint now returns enhanced responses with intelligent source tracking:
+
+```json
+{
+  "ai_response": "{\"definition\": \"NDIA: National Disability Insurance Agency\", \"elaboration\": \"The NDIA is responsible for implementing the National Disability Insurance Scheme (NDIS) in Australia.\", \"source_entity\": \"Department of Social Services\"}",
+  "sources": [
+    {
+      "score": 0.987,
+      "text": "NDIA",
+      "entity": "Department of Social Services",
+      "body_type": "Non-corporate Commonwealth entity",
+      "portfolio": "Social Services",
+      "url": "https://www.ndis.gov.au"
+    },
+    // ... 2 more sources for debugging
+  ],
+  "selected_source": {
+    "score": 0.987,
+    "text": "NDIA", 
+    "entity": "Department of Social Services",
+    "body_type": "Non-corporate Commonwealth entity",
+    "portfolio": "Social Services",
+    "url": "https://www.ndis.gov.au"
+  }
+}
+```
+
+**Key Features:**
+- `ai_response`: JSON string containing definition, elaboration, and source_entity
+- `sources`: All 3 retrieved sources (for debugging and transparency)  
+- `selected_source`: The specific source that Gemini chose to base its response on
 
 ### Frontend Testing
 

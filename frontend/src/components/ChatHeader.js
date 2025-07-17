@@ -35,9 +35,12 @@ const ChatHeader = ({ isConnected, onShowAbout, onShowHelp }) => {
   return (
     <div className="chat-header">
       <div className="header-title">
-        {/* Correct Bot Icon Styling */}
-        <Icons.Bot size={150} className="bot-icon" style={{ color: 'var(--primary-color)' }} />
-        <h1>Gov Terms AI/ IM2025</h1>
+        <img
+        src="/robot.svg"
+        alt="Gov Terms AI Robot"
+        style={{ height: 40, marginRight: 12, verticalAlign: 'middle' }}
+      />
+        <h1>Gov Terms AI</h1>
       </div>
       <div className="header-actions">
         <div className="connection-status">

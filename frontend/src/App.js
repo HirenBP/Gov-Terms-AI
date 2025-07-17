@@ -128,22 +128,68 @@ const handleSendMessage = async (e) => {
     }));
 
     const response = await sendChatMessage(messageText, backendChatHistory);
+    
+    // Debug: Log the exact response received
+    console.log('Raw backend response:', response);
+    console.log('Response.response type:', typeof response.response);
+    console.log('Response.response value:', response.response);
 
-    // Ensure response.response is a string
+    // Parse Gemini's JSON response
     let responseText = response.response;
-    if (typeof responseText !== 'string') {
-      if (responseText && typeof responseText === 'object') {
-        responseText = responseText.msg || responseText.message || JSON.stringify(responseText);
+    let parsedResponse = null;
+    
+    console.log('About to parse response:', responseText);
+    console.log('Type of responseText:', typeof responseText);
+    
+    try {
+      // Clean the response by removing markdown code blocks if present
+      let cleanedResponse = responseText;
+      if (responseText.includes('```json')) {
+        // Remove ```json at the start and ``` at the end
+        cleanedResponse = responseText.replace(/```json\s*/, '').replace(/\s*```$/, '');
+        console.log('Cleaned response:', cleanedResponse);
+      }
+      
+      // Try to parse the cleaned JSON response from Gemini
+      parsedResponse = JSON.parse(cleanedResponse);
+      console.log('Successfully parsed JSON:', parsedResponse);
+      
+      // Format the response for display
+      if (parsedResponse.definition) {
+        if (parsedResponse.elaboration) {
+          responseText = `${parsedResponse.definition}\n\n${parsedResponse.elaboration}`;
+          console.log('Using definition + elaboration');
+        } else {
+          responseText = parsedResponse.definition;
+          console.log('Using definition only');
+        }
       } else {
-        responseText = 'Sorry, I received an unexpected response format. Please try again.';
+        // Fallback if JSON doesn't have expected structure
+        responseText = responseText;
+        console.log('No definition found, using original response');
+      }
+    } catch (parseError) {
+      console.log('JSON parsing failed:', parseError);
+      console.log('Using response as-is');
+      // If it's not JSON, use the response as-is
+      if (typeof responseText !== 'string') {
+        if (responseText && typeof responseText === 'object') {
+          responseText = responseText.msg || responseText.message || JSON.stringify(responseText);
+        } else {
+          responseText = 'Sorry, I received an unexpected response format. Please try again.';
+        }
       }
     }
+    
+    console.log('Final responseText:', responseText);
 
     // Ensure sources are properly mapped
     const assistantMessage = {
       role: 'assistant',
       text: responseText,
-      sources: response.sources || [], // Default to an empty array if sources are undefined
+      sources: response.sources || [], // All sources for debugging
+      selectedSource: response.selectedSource, // The source Gemini actually used
+      parsedResponse: parsedResponse, // Include parsed response for source matching
       timestamp: new Date().toISOString()
     };
 

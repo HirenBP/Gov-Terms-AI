@@ -5,6 +5,25 @@ import ReactMarkdown from 'react-markdown';
 const Message = ({ message }) => {
   const isUser = message.role === 'user';
   console.log('Message sources:', message.sources);
+  console.log('Selected source:', message.selectedSource);
+  console.log('Parsed response:', message.parsedResponse);
+  
+  // Find the source that matches the source_entity from Gemini's response
+  let displaySource = null;
+  
+  // First try to match by source_entity if available
+  if (message.parsedResponse && message.parsedResponse.source_entity && message.sources) {
+    displaySource = message.sources.find(source => 
+      source.entity === message.parsedResponse.source_entity
+    );
+  }
+  
+  // Fallback to selectedSource if entity matching fails or no source_entity
+  if (!displaySource && message.selectedSource) {
+    displaySource = message.selectedSource;
+  }
+  
+  console.log('Display source:', displaySource);
   
   return (
     <div className={`message ${isUser ? 'user' : 'assistant'}`}>
@@ -23,26 +42,19 @@ const Message = ({ message }) => {
           </div>
         )}
 
-        {message.sources && message.sources.length > 0 &&
-          message.text &&
-          message.text.trim() !== "I apologize, but the term you're asking about is not defined in the knowledge I currently have." && (
+        {displaySource && !message.isError && !isUser && (
             <div className="message-sources">
               <div className="sources-title"><strong>Source:</strong></div>
-              {(() => {
-                const src = message.sources[0];
-                return (
-                  <div className="source-item" key={src.id || 0}>
-                    <div className="source-term"><strong>{src.entity}</strong></div>
-                    {src.url && (
-                      <div className="source-url">
-                        <a href={src.url} target="_blank" rel="noopener noreferrer">Source Link</a>
-                      </div>
-                    )}
-                    {src.portfolio && <div className="source-portfolio">Portfolio: {src.portfolio}</div>}
-                    <div className="source-score">Relevance: {(src.score * 100).toFixed(1)}%</div>
+              <div className="source-item" key={displaySource.id || 0}>
+                <div className="source-term"><strong>{displaySource.entity}</strong></div>
+                {displaySource.url && (
+                  <div className="source-url">
+                    <a href={displaySource.url} target="_blank" rel="noopener noreferrer">Source Link</a>
                   </div>
-                );
-              })()}
+                )}
+                {displaySource.portfolio && <div className="source-portfolio">Portfolio: {displaySource.portfolio}</div>}
+                <div className="source-score">Relevance: {(displaySource.score * 100).toFixed(1)}%</div>
+              </div>
             </div>
         )}
       </div>

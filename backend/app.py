@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 # Environment variables
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
-PINECONE_INDEX_NAME = "multilingual-e5-large-index"
-PINECONE_NAMESPACE = os.getenv("PINECONE_NAMESPACE", "gov-terms")
+PINECONE_INDEX_NAME = "all-e5-large"
+PINECONE_NAMESPACE = "gov-terms2"
 
 # Validate configs
 if not PINECONE_API_KEY or not GEMINI_API_KEY:
@@ -36,11 +36,11 @@ if not PINECONE_API_KEY or not GEMINI_API_KEY:
 # Initialize services
 pc = Pinecone(api_key=PINECONE_API_KEY)
 pinecone_index = pc.Index(PINECONE_INDEX_NAME)
-genai.configure(api_key=GEMINI_API_KEY)
-gemini_model = genai.GenerativeModel('gemini-2.0-flash')
+genai.configure(api_key=GEMINI_API_KEY) # type: ignore
+gemini_model = genai.GenerativeModel('gemini-2.0-flash') # type: ignore
 
 # FastAPI app
-app = FastAPI(title="Gov Terms AI", version="2.0.0")
+app = FastAPI(title="Gov Terms AI", version="2.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -69,7 +69,8 @@ async def health_check():
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
             "service": "Gov Terms AI Backend",
-            "version": "2.0.0",
+            "version": "2.1.0",
+            "Deployment Date": "15 July 2025",
             "pinecone_status": "connected",
             "vector_count": index_stats.total_vector_count if hasattr(index_stats, 'total_vector_count') else "unknown"
         }
@@ -80,7 +81,7 @@ async def health_check():
 @app.get("/")
 async def root():
     """Root endpoint."""
-    return {"message": "Gov Terms AI Backend", "status": "running", "version": "2.0.0"}
+    return {"message": "Gov Terms AI Backend", "status": "running", "version": "2.1.0", "Deployment Date": "15 July 2025"}
 
 # ============================================================================
 # Core 3 Functions
@@ -105,11 +106,11 @@ def search_database(user_query) -> List[Dict[str, Any]]:
     try:
         reference_text = []
         records = pinecone_index.search_records(
-            namespace="gov-terms",
+            namespace="gov-terms2",
             query={
                 "inputs": {"text": user_query},
                 "top_k": 3
-            }
+            } # type: ignore
         )
         hits = records.get('result', {}).get('hits', [])
         for hit in hits:
@@ -117,82 +118,143 @@ def search_database(user_query) -> List[Dict[str, Any]]:
             fields = hit.get('fields', {})
             reference_text.append({
                 "score": round(score, 3),
-                "id": fields.get("ID"),
-                "text": fields.get("text"),
-                "definition": fields.get("Definition"),
-                "entity": fields.get("Entity"),
-                "body_type": fields.get("BodyType"),
-                "portfolio": fields.get("Portfolio"),
-                "url": fields.get("Url")
+                "text": fields.get("text", ""),
+                "entity": fields.get("Entity", ""),
+                "body_type": fields.get("BodyType", ""),
+                "portfolio": fields.get("Portfolio", ""),
+                "url": fields.get("Url", "")
             })
-
+         # Sort reference_text by score in descending order
+        reference_text.sort(key=lambda x: x["score"], reverse=True)
         logger.info(f"✅ Found {len(reference_text)} relevant terms")
+        logger.info(f"{reference_text}")
         return reference_text
     except Exception as e:
         logger.error(f"Database search failed: {e}")
         raise HTTPException(status_code=500, detail="Database search failed")
 
-def select_best_source(search_results: List[Dict[str, Any]], ai_response: str = None) -> dict:
-    """Select the source used by Gemini (highest score, or match entity in Gemini response if tied)."""
-    if not search_results:
-        return None
-    max_score = max(s['score'] for s in search_results)
-    top_sources = [s for s in search_results if s['score'] == max_score]
-    # If only one, return it
-    if len(top_sources) == 1:
-        return top_sources[0]
-    # If tie, try to match entity in Gemini response
-    if ai_response:
-        for src in top_sources:
-            entity = src.get('entity')
-            if entity and entity in ai_response:
-                return src
-    # Fallback: return the first
-    return top_sources[0]
-
-def structure_response(user_query: str, ai_response: str, search_results: List[Dict[str, Any]]) -> dict:
-    """Structure the API response to include only the used source."""
-    not_defined_msg = "I apologize, but the term you're asking about is not defined in the knowledge I currently have."
-    if ai_response and ai_response.strip() == not_defined_msg:
-        source = None
-    else:
-        source = select_best_source(search_results, ai_response)
-    return {
-        "query": user_query,
-        "response": ai_response,
-        "sources": [source] if source else [],
-        "timestamp": datetime.now().isoformat()
-    }
-
-def send_gemini_prompt(user_query: str, search_results: List[Dict[str, Any]]) -> str:
+def send_gemini_prompt(user_query: str, search_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Function 4: Send prompt to Gemini with search results as context."""
     try:
         # Build context from search results
         if search_results:
             context = "\n".join([
-                f"**{term['text']}** ({term['entity']}): {term['definition']} (Score: {term['score']:.3f})"
+                f"{term['text']} Score: {term['score']} Entity: {term['entity']} BodyType:{term['body_type']} "
                 for term in search_results
             ])
             
-            prompt = f"""`
-You are an AI assistant specializing in Australian government terminology. Your primary goal is to provide clear and concise definitions based *only* on the provided "Reference text."
-Here are your guidelines:
-1.  **Definition Retrieval:** Search the "Reference text" for a definition of the "User Question."
-2.  **Definition Priority:** If multiple definitions for the same term exist within the "Reference text," identify the one with the highest 'score'. If multiple definitions share the exact same highest score, choose the Non-corporate commonwealth entity first.
-3.  **No Definition Found:** If the term is not defined in the "Reference text," politely state, "I apologize, but the term you're asking about is not defined in the knowledge I currently have."
-4.  **Response Structure and Formatting:**
-    * Start by providing the precise definition. Such as ABN : Australian Business Number.
-    * After the definition insert a new line.
-    * On this new line, provide one or two additional sentences that offer further context or implications of the term within the Australian government (do not simply rephrase the definition).
-5.  **Tone:** Maintain a helpful, polite, and conversational tone throughout your response, as if you are assisting a member of the public.
-User Question: "{user_query}"
-Reference text:
-{context}
-"""
+            prompt =f"""
+            You are an expert AI assistant for defining Australian government terminology. Your mission is to provide a clear and concise definition for a given term, acting as a trusted resource for the public.
+
+                Primary Goal:
+                Your task is to define the term provided in the "User Query" using only the information available 
+                in the "Reference Context".
+
+                Critical Rules:
+
+                Strict Sourcing: Use the "Reference Context" to identify and select the correct term definition. If the 
+                term is not defined there, you must respond with the exact phrase: "I apologise, but the term 
+                you're asking about is not defined in the knowledge I currently have."
+
+                Elaboration Guidelines: For the elaboration field, you may use your general knowledge to provide 
+                a helpful 1-2 sentence explanation of what the term is or what it does. The elaboration should be 
+                informative and help the public understand the concept, even if the Reference Context doesn't 
+                contain detailed explanatory information.
+
+                Tone: Your tone must be helpful, professional, and easy for a member of the public to understand.
+
+                Definition Selection Logic:
+                Your first and most important step is to classify the User Query and then follow the appropriate
+                  set of rules below.
+
+                Step 1: Classify the User Query
+
+                First, determine if the query is an 'ACRONYM' or a 'GENERAL TERM'.
+
+                An 'ACRONYM' is a short-form abbreviation, usually in all-caps (e.g., 'IGA', 'PBS', 'ATO').
+
+                A 'GENERAL TERM' is a standard word or phrase (e.g., 'tax', 'grant', 'commonwealth entity').
+
+                Step 2: Apply Logic Based on Classification
+
+                IF the query is an 'ACRONYM':
+                Follow these rules in precise sequential order:
+
+                Prioritise Generality: First, identify the definition with the shortest definition text.
+                A shorter, more concise definition is considered more foundational.
+
+                Break Ties with Score: If multiple definitions share the same shortest length, select 
+                the one with the highest 'score' from that group.
+
+                Conditionally Break Ties with Entity Type: If a tie still persists, check if all tied candidates
+                  have a populated 'BodyType' field. If they do, choose the 'Non-corporate Commonwealth entity'.
+                    Otherwise, skip this rule.
+
+                Final Tie-Breaker: If the tie still cannot be resolved, select the definition from the more
+                  central government body (e.g., 'Department of the Prime Minister and Cabinet').
+
+                IF the query is a 'GENERAL TERM':
+                Follow these rules in precise sequential order:
+
+                Prioritise Highest Score: First, identify the definition with the highest 'score'.
+
+                Break Ties with Entity Type: If multiple definitions share the exact same highest score, check 
+                if all tied candidates have a populated 'BodyType' field. If they do, choose the 'Non-corporate
+                  Commonwealth entity'. Otherwise, skip this rule.
+
+                Final Tie-Breaker: If the tie still cannot be resolved, select the definition from the more
+                  central government body (e.g., 'Department of the Prime Minister and Cabinet').
+
+                **Response Format:**
+                After choosing the correct source document using the logic above, you **must** structure your final output as a single JSON object. Do not include any text or formatting outside of this JSON object. The JSON must have the following structure:
+
+                * A top-level key `"definition"` containing ONLY the term expansion or short definition (e.g., "NDIS: National Disability Insurance Scheme" or "Tax: A compulsory financial charge").
+                * A top-level key `"elaboration"` containing 1-2 sentences that provide a general explanation of what the term is or what it does. Use your knowledge to make this explanation helpful and informative for the public, even if the Reference Context lacks detailed explanatory information.
+                * A top-level key `"source_entity"` containing only the **string value** of the `entity` field from the source document you chose.
+
+                **Example JSON Output Structure:**
+                ```json
+                {{
+                "definition": "NDIS: National Disability Insurance Scheme",
+                "elaboration": "This is a scheme that provides services and support for people with permanent and significant disability, their families and carers. It aims to help people with disability achieve their goals and participate more fully in the community.",
+                "source_entity": "Department of Social Services"
+                }}
+
+                User Query: "{user_query}"
+
+                Reference Context:
+                {context}
+                        """
         # Generate response
-        response = gemini_model.generate_content(prompt)
+        response = gemini_model.generate_content(prompt) # type: ignore
         logger.info("✅ Gemini response generated")
-        return response.text
+        logger.info(f"The context was: {context}") # type: ignore
+        
+        # Parse JSON response from Gemini
+        import json
+        try:
+            gemini_data = json.loads(response.text)
+            selected_source_entity = gemini_data.get("source_entity")
+            
+            # Find which source was selected by matching entity
+            selected_source = None
+            if selected_source_entity:
+                for source in search_results:
+                    if source["entity"] == selected_source_entity:
+                        selected_source = source
+                        break
+            
+            return {
+                "ai_response": response.text,
+                "selected_source": selected_source
+            }
+        except json.JSONDecodeError:
+            # If JSON parsing fails, return raw response without selected source
+            return {
+                "ai_response": response.text,
+                "selected_source": None
+            }
+            
     except Exception as e:
         logger.error(f"Gemini prompt failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate response")
@@ -212,12 +274,18 @@ async def query_endpoint(request: dict):
         search_results = search_database(user_query)
         
         # Function 3: Send Gemini prompt with context
-        ai_response = send_gemini_prompt(user_query, search_results)
+        gemini_result = send_gemini_prompt(user_query, search_results)
         
         # Log response received from Gemini 
-        logger.info(f"Gemini Response is: {ai_response}")
+        logger.info(f"Gemini Response is: {gemini_result['ai_response']}")
+        logger.info(f"Selected source: {gemini_result['selected_source']}")
+        
         # Structure and send response to frontend
-        response_payload = structure_response(user_query, ai_response, search_results)
+        response_payload = {
+            "ai_response": gemini_result["ai_response"], 
+            "sources": search_results,  # All 3 sources for debugging
+            "selected_source": gemini_result["selected_source"]  # The source Gemini actually used
+        }
         logger.info(f"The sources are {response_payload['sources']} type of score is {response_payload['sources'][0]['score'] if response_payload['sources'] else 'N/A'}")
         return response_payload
 
