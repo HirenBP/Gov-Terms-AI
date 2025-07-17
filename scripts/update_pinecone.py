@@ -32,8 +32,8 @@ for i, rec in enumerate(records):
     # Compose a unique id: term_01, term_02, ...  
     rec_id = f"term_{i+1:02d}"
     Term = rec.get("Term", "")
-    Defintion = rec.get("Definition", "")
-    text = Term + ": " + Defintion
+    Definition = rec.get("Definition", "")
+    text = Term + ": " + Definition
     Entity = rec.get("Entity", "")
     Portfolio = rec.get("Portfolio", "")
     BodyType = rec.get("BodyType", "")
