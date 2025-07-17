@@ -231,7 +231,6 @@ def send_gemini_prompt(user_query: str, search_results: List[Dict[str, Any]]) ->
         logger.info(f"The context was: {context}") # type: ignore
         
         # Parse JSON response from Gemini
-        import json
         try:
             gemini_data = json.loads(response.text)
             selected_source_entity = gemini_data.get("source_entity")
