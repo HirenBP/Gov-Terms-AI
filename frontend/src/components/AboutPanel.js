@@ -7,7 +7,7 @@ const AboutPanel = () => (
     <p>Gov Terms AI helps you understand Australian government terminology, abbreviations, and acronyms using advanced AI technology.</p>
     
     <h3>How It Works</h3>
-    <p>The system searches through terms extracted from Annual Reports of 90+ agencies from <a href="https://www.transparency.gov.au/" target="_blank" rel="noopener noreferrer">transparency.gov.au</a> and other government sources.</p>
+    <p>The system searches through terms extracted from Annual Reports of 130+ agencies from <a href="https://www.transparency.gov.au/" target="_blank" rel="noopener noreferrer">transparency.gov.au</a> and other government sources.</p>
     
     <h3>Technology</h3>
     <ul>
