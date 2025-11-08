@@ -46,9 +46,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:3001", 
-        "https://wonderful-water-00378c20f.2.azurestaticapps.net",  # Main static web app
-        "https://polite-tree-0976a390f.1.azurestaticapps.net",      # Secondary static web app
-        "https://*.azurestaticapps.net"  # Wildcard for all Azure Static Web Apps
+       "https://hirenbp.github.io/Gov-Terms-AI/"
     ],
     allow_methods=["*"],
     allow_headers=["*"],
@@ -69,8 +67,8 @@ async def health_check():
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
             "service": "Gov Terms AI Backend",
-            "version": "2.1.0",
-            "Deployment Date": "8 Novemeb",
+            "version": "3.1.0",
+            "Deployment Date": "8 November 2025",
             "pinecone_status": "connected",
             "vector_count": index_stats.total_vector_count if hasattr(index_stats, 'total_vector_count') else "unknown"
         }
