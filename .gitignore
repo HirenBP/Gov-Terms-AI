@@ -85,3 +85,4 @@ jspm_packages/
 temp/
 tmp/
 *.tmp
+backend/gemini_voic.py

@@ -169,9 +169,17 @@ body {
 }
 
 .header-title .bot-icon {
-  width: 100px; /* Adjust width for scaling */
-  height: 100px; /* Adjust height for scaling */
+  /* Header-specific bot icon: allow SVG to size itself via svg selector below
+     so we can pass size props from React while avoiding global .bot-icon overrides */
+  width: auto;
+  height: auto;
   flex-shrink: 0; /* Prevent shrinking */
+}
+
+.header-title .bot-icon svg {
+  width: 40px;
+  height: 40px;
+  display: inline-block;
 }
 
 /* Chat Body */

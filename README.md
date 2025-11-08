@@ -15,8 +15,8 @@
 
 ## 🌐 Live Application
 
-**Frontend**: https://wonderful-water-00378c20f.2.azurestaticapps.net  
-**Backend**: https://cabackend-32p4pozukxrfi.redmushroom-cb7b0f31.eastus2.azurecontainerapps.io  
+**Frontend**: 
+**Backend**: 
 
 ## 🏗️ Architecture
 

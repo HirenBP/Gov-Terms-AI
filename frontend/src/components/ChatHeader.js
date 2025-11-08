@@ -35,11 +35,8 @@ const ChatHeader = ({ isConnected, onShowAbout, onShowHelp }) => {
   return (
     <div className="chat-header">
       <div className="header-title">
-        <img
-        src="/robot.svg"
-        alt="Gov Terms AI Robot"
-        style={{ height: 40, marginRight: 12, verticalAlign: 'middle' }}
-      />
+        {/* Use the SVG robot icon so it inherits color/size and matches .bot-icon CSS */}
+        <Icons.Bot className="bot-icon" size={40} style={{ marginRight: 12, verticalAlign: 'middle' }} aria-hidden="true" />
         <h1>Gov Terms AI</h1>
       </div>
       <div className="header-actions">
