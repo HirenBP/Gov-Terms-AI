@@ -30,7 +30,7 @@ jobs:
         run: |
           python -m venv antenv
           source antenv/bin/activate
-          pip install -r requirements.txt
+          pip install -r backend/requirements.txt
                 
       # By default, when you enable GitHub CI/CD integration through the Azure portal, the platform automatically sets the SCM_DO_BUILD_DURING_DEPLOYMENT application setting to true. This triggers the use of Oryx, a build engine that handles application compilation and dependency installation (e.g., pip install) directly on the platform during deployment. Hence, we exclude the antenv virtual environment directory from the deployment artifact to reduce the payload size. 
       - name: Upload artifact for deployment jobs
@@ -38,13 +38,27 @@ jobs:
         with:
           name: python-app
           path: |
-            .
-            !antenv/
+            backend
+            !backend/antenv/
 
       # 🚫 Opting Out of Oryx Build
       # If you prefer to disable the Oryx build process during deployment, follow these steps:
       # 1. Remove the SCM_DO_BUILD_DURING_DEPLOYMENT app setting from your Azure App Service Environment variables.
       # 2. Refer to sample workflows for alternative deployment strategies: https://github.com/Azure/actions-workflow-samples/tree/master/AppService
+      
+      # ⚙️ REQUIRED Azure App Service Configuration:
+      # After deployment, configure these settings in Azure Portal → Your App Service:
+      #
+      # 1. Startup Command (Configuration → General Settings → Startup Command):
+      #    python -m uvicorn app:app --host 0.0.0.0 --port 8000
+      #    OR for production with Gunicorn:
+      #    gunicorn -w 4 -k uvicorn.workers.UvicornWorker app:app --bind 0.0.0.0:8000
+      #
+      # 2. Environment Variables (Configuration → Application Settings):
+      #    - PINECONE_API_KEY=<your-pinecone-key>
+      #    - GOOGLE_API_KEY=<your-google-gemini-key>
+      #    - PINECONE_INDEX_NAME=all-e5-large (optional, has default)
+      #    - PINECONE_NAMESPACE=gov-terms2 (optional, has default)
       
 
   deploy:
@@ -64,3 +78,4 @@ jobs:
           app-name: 'Gov-Terms-AI-BackEnd'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_75B85545339D447D961A95C8A0046856 }}
+          package: .
