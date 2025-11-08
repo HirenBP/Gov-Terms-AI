@@ -20,10 +20,10 @@ const AboutPanel = () => (
     
     <h3>Created by:</h3>
     <p><strong>Hiren Bhavsar</strong></p>
-    <p><strong>Department of Social Services</strong></p>
+    <p><strong>Department of Health, Disability and Ageging</strong></p>
     <p>
       <a href='mailto:hiren.bhavsar@dss.gov.au' style={{ color: '#0066cc', textDecoration: 'none' }}>
-        hiren.bhavsar@dss.gov.au
+        hiren.bhavsar@healt.gov.au
       </a>
     </p>
     
