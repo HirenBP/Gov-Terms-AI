@@ -70,7 +70,7 @@ async def health_check():
             "timestamp": datetime.now().isoformat(),
             "service": "Gov Terms AI Backend",
             "version": "2.1.0",
-            "Deployment Date": "15 July 2025",
+            "Deployment Date": "8 Novemeb",
             "pinecone_status": "connected",
             "vector_count": index_stats.total_vector_count if hasattr(index_stats, 'total_vector_count') else "unknown"
         }
