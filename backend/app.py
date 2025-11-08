@@ -46,7 +46,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:3001", 
-       "https://hirenbp.github.io/Gov-Terms-AI/"
+        "https://hirenbp.github.io"
     ],
     allow_methods=["*"],
     allow_headers=["*"],
@@ -79,7 +79,7 @@ async def health_check():
 @app.get("/")
 async def root():
     """Root endpoint."""
-    return {"message": "Gov Terms AI Backend", "status": "running", "version": "2.1.0", "Deployment Date": "November 8, 2025"}
+    return {"message": "Gov Terms AI Backend", "status": "running", "version": "3.1.0", "Deployment Date": "November 8, 2025"}
 
 # ============================================================================
 # Core 3 Functions
