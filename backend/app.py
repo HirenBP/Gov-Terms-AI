@@ -79,7 +79,7 @@ async def health_check():
 @app.get("/")
 async def root():
     """Root endpoint."""
-    return {"message": "Gov Terms AI Backend", "status": "running", "version": "2.1.0", "Deployment Date": "15 July 2025"}
+    return {"message": "Gov Terms AI Backend", "status": "running", "version": "2.1.0", "Deployment Date": "November 8, 2025"}
 
 # ============================================================================
 # Core 3 Functions
