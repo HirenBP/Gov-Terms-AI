@@ -253,8 +253,12 @@ def send_gemini_prompt(user_query: str, search_results: List[Dict[str, Any]]) ->
             }
             
     except Exception as e:
-        logger.error(f"Gemini prompt failed: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate response")
+        # Log full exception with traceback to help debugging
+        logger.exception("Gemini prompt failed")
+        # Return the exception message in the HTTP response detail so the frontend
+        # can surface a more helpful error during development/diagnosis.
+        # Note: avoid leaking secrets in production - this is intended for debugging.
+        raise HTTPException(status_code=500, detail=f"Failed to generate response: {str(e)}")
 
 # ============================================================================
 # API Endpoints
