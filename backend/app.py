@@ -82,7 +82,7 @@ async def health_check():
 @app.get("/")
 async def root():
     """Root endpoint."""
-    return {"message": "Gov Terms AI Backend", "status": "running", "version": "4.1.0", "Deployment Date": "July 12 2026"}
+    return {"message": "Gov Terms AI Backend", "status": "running", "version": "4.2.0", "Deployment Date": "July 12 2026"}
 
 # ============================================================================
 # Core 3 Functions
@@ -136,6 +136,7 @@ def get_user_query(request_body: dict) -> str:
 def search_database(user_query: str) -> List[Dict[str, Any]]:
     """Function 3: Search Pinecone database."""
     logger.info("SEARCH_DATABASE_START: Function triggered")
+    logger.info("TEST_DEPLOYMENT_RELOAD: If you see this, the code finally updated.")
     try:
         reference_text = []
         
