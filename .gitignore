@@ -86,3 +86,4 @@ temp/
 tmp/
 *.tmp
 backend/gemini_voic.py
+troubleshoot_pinecone.py

@@ -153,12 +153,13 @@ def search_database(user_query: str) -> List[Dict[str, Any]]:
         hits = data.get("result", {}).get("hits", [])
         
         for hit in hits:
-            # Safely get the score; look for '_score' first, then 'score'
-            score = hit.get("_score") or hit.get("score") or 0.0
+            # We access _score directly. 
+            # We use float() to ensure it's not a weird SDK object type.
+            score = float(hit.get("_score", 0.0))
             fields = hit.get("fields", {}) 
             
             reference_text.append({
-                "score": round(float(score), 3),
+                "score": round(score, 3),
                 "text": fields.get("text", ""),
                 "entity": fields.get("Entity", ""),
                 "body_type": fields.get("BodyType", ""),
