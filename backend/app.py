@@ -82,7 +82,7 @@ async def health_check():
 @app.get("/")
 async def root():
     """Root endpoint."""
-    return {"message": "Gov Terms AI Backend", "status": "running", "version": "3.1.0", "Deployment Date": "November 8, 2025"}
+    return {"message": "Gov Terms AI Backend", "status": "running", "version": "4.1.0", "Deployment Date": "July 12 2026"}
 
 # ============================================================================
 # Core 3 Functions
@@ -135,9 +135,11 @@ def get_user_query(request_body: dict) -> str:
 #         raise HTTPException(status_code=500, detail="Database search failed")
 def search_database(user_query: str) -> List[Dict[str, Any]]:
     """Function 3: Search Pinecone database."""
+    logger.info("SEARCH_DATABASE_START: Function triggered")
     try:
         reference_text = []
         
+        # Search Pinecone
         records = pinecone_index.search(
             namespace="gov-terms2",
             query={
@@ -146,17 +148,22 @@ def search_database(user_query: str) -> List[Dict[str, Any]]:
             }
         )
         
-        # Convert the complex SDK response object to a standard dictionary
+        # Convert to dict if necessary
         data = records.to_dict() if hasattr(records, 'to_dict') else records
-        
-        # Access the hits list from the standard dictionary
         hits = data.get("result", {}).get("hits", [])
         
+        # DEBUG: Dump the entire hits list so we can see the structure in logs
+        logger.info(f"DEBUG_HITS_DUMP: {hits}")
+        
         for hit in hits:
-            # Explicitly force float conversion from the correct key
-            raw_val = hit.get("_score")
-            score = float(raw_val) if raw_val is not None else 0.0
+            # DEBUG: Inspect the hit object structure
+            logger.info(f"DEBUG_HIT_TYPE: {type(hit)}")
             
+            raw_val = hit.get("_score")
+            # Log raw_val to see if it's None or something else
+            logger.info(f"DEBUG_RAW_SCORE: {raw_val}")
+            
+            score = float(raw_val) if raw_val is not None else 0.0
             fields = hit.get("fields", {}) 
             
             reference_text.append({
@@ -172,9 +179,9 @@ def search_database(user_query: str) -> List[Dict[str, Any]]:
         return reference_text
         
     except Exception as e:
-        logger.exception("Database search failed") # logger.exception will show the line number of the error
+        logger.exception("Database search failed")
         raise HTTPException(status_code=500, detail=f"Database search failed: {str(e)}")
-
+    
 def send_gemini_prompt(user_query: str, search_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Function 4: Send prompt to Gemini with search results as context."""
     try:
