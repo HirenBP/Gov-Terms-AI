@@ -1,5 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gov-terms-ai-backend-exftc4gnfdd0g5fg.australiaeast-01.azurewebsites.net'
-
+const API_BASE_URL = 'https://gov-terms-ai-f6096c1d.fastapicloud.dev';
 /**
  * Send chat message to the simplified backend
  * @param {string} message - User's message/query
