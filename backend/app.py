@@ -138,7 +138,6 @@ def search_database(user_query: str) -> List[Dict[str, Any]]:
     try:
         reference_text = []
         
-        # 1. FIXED: Changed .search_records() to .search()
         records = pinecone_index.search(
             namespace="gov-terms2",
             query={
@@ -147,16 +146,19 @@ def search_database(user_query: str) -> List[Dict[str, Any]]:
             }
         )
         
-        # 2. FIXED: Replaced .get() with bracket notation for the top-level Pinecone response object
-        hits = records["result"]["hits"]
+        # Convert the complex SDK response object to a standard dictionary
+        data = records.to_dict() if hasattr(records, 'to_dict') else records
+        
+        # Access the hits list from the standard dictionary
+        hits = data.get("result", {}).get("hits", [])
         
         for hit in hits:
-            # You can safely use bracket notation for the core hit properties
-            score = hit["_score"]
+            # Safely get the score; look for '_score' first, then 'score'
+            score = hit.get("_score") or hit.get("score") or 0.0
             fields = hit.get("fields", {}) 
             
             reference_text.append({
-                "score": round(score, 3),
+                "score": round(float(score), 3),
                 "text": fields.get("text", ""),
                 "entity": fields.get("Entity", ""),
                 "body_type": fields.get("BodyType", ""),
@@ -164,17 +166,12 @@ def search_database(user_query: str) -> List[Dict[str, Any]]:
                 "url": fields.get("Url", "")
             })
             
-        # Sort reference_text by score in descending order
         reference_text.sort(key=lambda x: x["score"], reverse=True)
-        
-        logger.info(f"✅ Found {len(reference_text)} relevant terms")
-        logger.info(f"{reference_text}")
-        
         return reference_text
         
     except Exception as e:
-        logger.error(f"Database search failed: {e}")
-        raise HTTPException(status_code=500, detail="Database search failed")
+        logger.exception("Database search failed") # logger.exception will show the line number of the error
+        raise HTTPException(status_code=500, detail=f"Database search failed: {str(e)}")
 
 def send_gemini_prompt(user_query: str, search_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Function 4: Send prompt to Gemini with search results as context."""
