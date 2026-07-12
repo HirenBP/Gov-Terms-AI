@@ -148,23 +148,20 @@ def search_database(user_query: str) -> List[Dict[str, Any]]:
             }
         )
         
-        # Convert to dict if necessary
-        data = records.to_dict() if hasattr(records, 'to_dict') else records
-        hits = data.get("result", {}).get("hits", [])
-        
-        # DEBUG: Dump the entire hits list so we can see the structure in logs
-        logger.info(f"DEBUG_HITS_DUMP: {hits}")
+        # Safely access hits from the result object
+        # We try to get 'result' then 'hits' using getattr first (for objects), 
+        # then fallback to dictionary access if it's a dict.
+        data_result = getattr(records, 'result', None) or records.get("result", {})
+        hits = getattr(data_result, 'hits', []) or data_result.get("hits", [])
         
         for hit in hits:
-            # DEBUG: Inspect the hit object structure
-            logger.info(f"DEBUG_HIT_TYPE: {type(hit)}")
-            
-            raw_val = hit.get("_score")
-            # Log raw_val to see if it's None or something else
-            logger.info(f"DEBUG_RAW_SCORE: {raw_val}")
-            
+            # The 'Hit' object uses '_score' as an attribute. 
+            # getattr(hit, '_score', None) safely retrieves it if it exists.
+            raw_val = getattr(hit, '_score', None)
             score = float(raw_val) if raw_val is not None else 0.0
-            fields = hit.get("fields", {}) 
+            
+            # Similarly, 'fields' is accessed as an attribute
+            fields = getattr(hit, 'fields', {})
             
             reference_text.append({
                 "score": round(score, 3),
@@ -175,6 +172,7 @@ def search_database(user_query: str) -> List[Dict[str, Any]]:
                 "url": fields.get("Url", "")
             })
             
+        # Sort results by score (descending)
         reference_text.sort(key=lambda x: x["score"], reverse=True)
         return reference_text
         
