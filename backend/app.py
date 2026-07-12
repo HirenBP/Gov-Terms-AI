@@ -82,7 +82,7 @@ async def health_check():
 @app.get("/")
 async def root():
     """Root endpoint."""
-    return {"message": "Gov Terms AI Backend", "status": "running", "version": "4.2.0", "Deployment Date": "July 12 2026"}
+    return {"message": "Gov Terms AI Backend", "status": "running", "version": "4.3.0", "Deployment Date": "July 12 2026"}
 
 # ============================================================================
 # Core 3 Functions
@@ -136,7 +136,6 @@ def get_user_query(request_body: dict) -> str:
 def search_database(user_query: str) -> List[Dict[str, Any]]:
     """Function 3: Search Pinecone database."""
     logger.info("SEARCH_DATABASE_START: Function triggered")
-    logger.info("TEST_DEPLOYMENT_RELOAD: If you see this, the code finally updated.")
     try:
         reference_text = []
         
@@ -149,20 +148,20 @@ def search_database(user_query: str) -> List[Dict[str, Any]]:
             }
         )
         
-        # Safely access hits from the result object
-        # We try to get 'result' then 'hits' using getattr first (for objects), 
-        # then fallback to dictionary access if it's a dict.
-        data_result = getattr(records, 'result', None) or records.get("result", {})
-        hits = getattr(data_result, 'hits', []) or data_result.get("hits", [])
+        # Robustly access hits (handling the SDK object structure)
+        data_result = getattr(records, 'result', {}) or (records.get("result", {}) if hasattr(records, 'get') else {})
+        hits = getattr(data_result, 'hits', []) or (data_result.get("hits", []) if hasattr(data_result, 'get') else [])
         
         for hit in hits:
-            # The 'Hit' object uses '_score' as an attribute. 
-            # getattr(hit, '_score', None) safely retrieves it if it exists.
-            raw_val = getattr(hit, '_score', None)
+            # Convert object to dict to access keys like '_score' reliably
+            hit_dict = hit.to_dict() if hasattr(hit, 'to_dict') else {}
+            
+            # Extract score
+            raw_val = hit_dict.get("_score")
             score = float(raw_val) if raw_val is not None else 0.0
             
-            # Similarly, 'fields' is accessed as an attribute
-            fields = getattr(hit, 'fields', {})
+            # Extract fields
+            fields = hit_dict.get("fields", {})
             
             reference_text.append({
                 "score": round(score, 3),
