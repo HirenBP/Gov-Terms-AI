@@ -25,19 +25,21 @@ logger = logging.getLogger(__name__)
 
 # Environment variables
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 PINECONE_INDEX_NAME = "all-e5-large"
 PINECONE_NAMESPACE = "gov-terms2"
 
 # Validate configs
-if not PINECONE_API_KEY or not GEMINI_API_KEY:
-    raise ValueError("PINECONE_API_KEY and GEMINI_API_KEY are required")
+if not PINECONE_API_KEY:
+    raise ValueError("PINECONE_API_KEY is required")
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY or GOOGLE_API_KEY is required")
 
 # Initialize services
 pc = Pinecone(api_key=PINECONE_API_KEY)
 pinecone_index = pc.Index(PINECONE_INDEX_NAME)
 genai.configure(api_key=GEMINI_API_KEY) # type: ignore
-gemini_model = genai.GenerativeModel('gemini-2.0-flash') # type: ignore
+gemini_model = genai.GenerativeModel('gemini-3.5-flash') # type: ignore
 
 # FastAPI app
 app = FastAPI(title="Gov Terms AI", version="2.1.0")
@@ -68,7 +70,7 @@ async def health_check():
             "timestamp": datetime.now().isoformat(),
             "service": "Gov Terms AI Backend",
             "version": "3.1.0",
-            "Deployment Date": "8 November 2025",
+            "Deployment Date": "July 12 2026",
             "pinecone_status": "connected",
             "vector_count": index_stats.total_vector_count if hasattr(index_stats, 'total_vector_count') else "unknown"
         }
