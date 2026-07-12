@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pinecone import Pinecone
 import google.generativeai as genai
 from dotenv import load_dotenv
+from typing import List, Dict, Any
 
 # Load environment variables
 load_dotenv()
@@ -101,21 +102,59 @@ def get_user_query(request_body: dict) -> str:
 
 
 
-def search_database(user_query) -> List[Dict[str, Any]]:
+# def search_database(user_query) -> List[Dict[str, Any]]:
+#     """Function 3: Search Pinecone database."""
+#     try:
+#         reference_text = []
+#         records = pinecone_index.search_records(
+#             namespace="gov-terms2",
+#             query={
+#                 "inputs": {"text": user_query},
+#                 "top_k": 3
+#             } # type: ignore
+#         )
+#         hits = records.get('result', {}).get('hits', [])
+#         for hit in hits:
+#             score = hit.get('score')
+#             fields = hit.get('fields', {})
+#             reference_text.append({
+#                 "score": round(score, 3),
+#                 "text": fields.get("text", ""),
+#                 "entity": fields.get("Entity", ""),
+#                 "body_type": fields.get("BodyType", ""),
+#                 "portfolio": fields.get("Portfolio", ""),
+#                 "url": fields.get("Url", "")
+#             })
+#          # Sort reference_text by score in descending order
+#         reference_text.sort(key=lambda x: x["score"], reverse=True)
+#         logger.info(f"✅ Found {len(reference_text)} relevant terms")
+#         logger.info(f"{reference_text}")
+#         return reference_text
+#     except Exception as e:
+#         logger.error(f"Database search failed: {e}")
+#         raise HTTPException(status_code=500, detail="Database search failed")
+def search_database(user_query: str) -> List[Dict[str, Any]]:
     """Function 3: Search Pinecone database."""
     try:
         reference_text = []
-        records = pinecone_index.search_records(
+        
+        # 1. FIXED: Changed .search_records() to .search()
+        records = pinecone_index.search(
             namespace="gov-terms2",
             query={
                 "inputs": {"text": user_query},
                 "top_k": 3
-            } # type: ignore
+            }
         )
-        hits = records.get('result', {}).get('hits', [])
+        
+        # 2. FIXED: Replaced .get() with bracket notation for the top-level Pinecone response object
+        hits = records["result"]["hits"]
+        
         for hit in hits:
-            score = hit.get('_score')
-            fields = hit.get('fields', {})
+            # You can safely use bracket notation for the core hit properties
+            score = hit["_score"]
+            fields = hit.get("fields", {}) 
+            
             reference_text.append({
                 "score": round(score, 3),
                 "text": fields.get("text", ""),
@@ -124,11 +163,15 @@ def search_database(user_query) -> List[Dict[str, Any]]:
                 "portfolio": fields.get("Portfolio", ""),
                 "url": fields.get("Url", "")
             })
-         # Sort reference_text by score in descending order
+            
+        # Sort reference_text by score in descending order
         reference_text.sort(key=lambda x: x["score"], reverse=True)
+        
         logger.info(f"✅ Found {len(reference_text)} relevant terms")
         logger.info(f"{reference_text}")
+        
         return reference_text
+        
     except Exception as e:
         logger.error(f"Database search failed: {e}")
         raise HTTPException(status_code=500, detail="Database search failed")

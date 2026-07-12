@@ -1,4 +1,5 @@
 const API_BASE_URL = 'https://gov-terms-ai-f6096c1d.fastapicloud.dev';
+//const API_BASE_URL = 'http://localhost:8000'; // Local backend for development
 /**
  * Send chat message to the simplified backend
  * @param {string} message - User's message/query
