@@ -153,9 +153,10 @@ def search_database(user_query: str) -> List[Dict[str, Any]]:
         hits = data.get("result", {}).get("hits", [])
         
         for hit in hits:
-            # We access _score directly. 
-            # We use float() to ensure it's not a weird SDK object type.
-            score = float(hit.get("_score", 0.0))
+            # Explicitly force float conversion from the correct key
+            raw_val = hit.get("_score")
+            score = float(raw_val) if raw_val is not None else 0.0
+            
             fields = hit.get("fields", {}) 
             
             reference_text.append({
