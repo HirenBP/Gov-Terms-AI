@@ -52,8 +52,7 @@ const Message = ({ message }) => {
                     <a href={displaySource.url} target="_blank" rel="noopener noreferrer">Source Link</a>
                   </div>
                 )}
-                {displaySource.portfolio && <div className="source-portfolio">Portfolio: {displaySource.portfolio}</div>}
-                <div className="source-score">Relevance: {(displaySource.score * 100).toFixed(1)}%</div>
+               
               </div>
             </div>
         )}

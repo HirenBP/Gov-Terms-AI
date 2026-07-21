@@ -1,7 +1,7 @@
 {
   "homepage": "https://hirenbp.github.io/Gov-Terms-AI/",
   "name": "gov-terms-ai-frontend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "React frontend for Gov Terms AI - Australian Government Terms and Abbreviations RAG System",
   "private": true,
   "dependencies": {

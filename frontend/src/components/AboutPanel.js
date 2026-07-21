@@ -22,8 +22,8 @@ const AboutPanel = () => (
     <p><strong>Hiren Bhavsar</strong></p>
     <p><strong>Department of Health, Disability and Ageging</strong></p>
     <p>
-      <a href='mailto:hiren.bhavsar@dss.gov.au' style={{ color: '#0066cc', textDecoration: 'none' }}>
-        hiren.bhavsar@health.gov.au
+      <a href='mailto:hiren.bhavsar@govteams.gov.au' style={{ color: '#0066cc', textDecoration: 'none' }}>
+        hiren.bhavsar@govteams.gov.au
       </a>
     </p>
     
