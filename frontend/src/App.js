@@ -29,7 +29,7 @@ const App = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
   const [error, setError] = useState(null);
   const [aboutPanelOpen, setAboutPanelOpen] = useState(false);
   const [helpPanelOpen, setHelpPanelOpen] = useState(false);
@@ -37,6 +37,7 @@ const App = () => {
   const [summary, setSummary] = useState('');
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
+  const isConnected = connectionStatus === 'connected';
   
   // Refs
   const messagesEndRef = useRef(null);
@@ -46,12 +47,13 @@ const App = () => {
   
   useEffect(() => {
     const checkConnection = async () => {
+      setConnectionStatus('connecting');
       try {
         const { available } = await getBackendStatus();
-        setIsConnected(available);
-        setError(null);
+        setConnectionStatus(available ? 'connected' : 'disconnected');
+        setError(available ? null : 'Unable to connect to backend service');
       } catch (error) {
-        setIsConnected(false);
+        setConnectionStatus('disconnected');
         setError('Unable to connect to backend service');
       }
     };
@@ -92,21 +94,21 @@ const App = () => {
   }, [chatHistory]);
   
   const handleRetry = async () => {
+    setConnectionStatus('connecting');
     try {
       const { available } = await getBackendStatus();
-      setIsConnected(available);
-      setError(null);
+      setConnectionStatus(available ? 'connected' : 'disconnected');
+      setError(available ? null : 'Unable to connect to backend service');
     } catch (error) {
-      setIsConnected(false);
+      setConnectionStatus('disconnected');
       setError('Unable to connect to backend service');
     }
   };
   
-const handleSendMessage = async (e) => {
-  e.preventDefault();
-  if (!userInput.trim() || isLoading) return;
+const sendMessage = async (message) => {
+  const messageText = message.trim();
+  if (!messageText || isLoading || !isConnected) return;
 
-  const messageText = userInput.trim();
   setUserInput('');
 
   // Add user message
@@ -211,6 +213,11 @@ const handleSendMessage = async (e) => {
     setIsLoading(false);
   }
 };
+
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    sendMessage(userInput);
+  };
   
   const handleSummarize = async () => {
     if (chatHistory.length === 0) {
@@ -267,7 +274,7 @@ This conversation focused on Australian government terminology and definitions.`
         <div className="chat-widget">
           <div ref={headerRef}>
             <ChatHeader 
-              isConnected={isConnected}
+              connectionStatus={connectionStatus}
               onShowAbout={() => setAboutPanelOpen(true)}
               onShowHelp={() => setHelpPanelOpen(true)}
               onToggleAccessibility={() => setSettingsPanelOpen(!settingsPanelOpen)}
@@ -281,7 +288,10 @@ This conversation focused on Australian government terminology and definitions.`
               )}
               
               {chatHistory.length === 0 && !isLoading && (
-                <WelcomeMessage />
+                <WelcomeMessage
+                  onPromptSelect={sendMessage}
+                  disabled={!isConnected}
+                />
               )}
               
               {chatHistory.map((message, index) => (

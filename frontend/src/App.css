@@ -159,6 +159,10 @@ body {
 
 .connection-status {
   margin-right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
 }
 
 .status-indicator {
@@ -167,10 +171,34 @@ body {
   border-radius: 50%;
   background: #ff6b6b;
   display: inline-block;
+  flex-shrink: 0;
 }
 
 .status-indicator.connected {
   background: #51cf66;
+}
+
+.status-indicator.connecting {
+  background: #ffd43b;
+  animation: status-pulse 1.4s ease-in-out infinite;
+}
+
+.connection-status-text {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  opacity: 0.9;
+}
+
+@keyframes status-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-indicator.connecting {
+    animation: none;
+  }
 }
 
 .header-title .bot-icon {
@@ -211,6 +239,45 @@ body {
   font-style: italic;
   padding: 2rem;
   font-size: var(--font-size-base);
+}
+
+.starter-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.625rem;
+  margin-top: 1.25rem;
+}
+
+.starter-prompt {
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--primary);
+  border-radius: 18px;
+  background: var(--bg-primary);
+  color: var(--primary);
+  font: inherit;
+  font-style: normal;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.starter-prompt:hover:not(:disabled),
+.starter-prompt:focus-visible {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.starter-prompt:focus-visible {
+  outline: 3px solid rgba(0, 128, 128, 0.2);
+  outline-offset: 2px;
+}
+
+.starter-prompt:disabled {
+  border-color: var(--text-muted);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 /* Messages */

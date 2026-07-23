@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/Gov-Terms-AI/static/css/main.c7a2f243.css",
-    "main.js": "/Gov-Terms-AI/static/js/main.c40af73f.js",
+    "main.css": "/Gov-Terms-AI/static/css/main.a581ea61.css",
+    "main.js": "/Gov-Terms-AI/static/js/main.7cf2db34.js",
     "index.html": "/Gov-Terms-AI/index.html",
-    "main.c7a2f243.css.map": "/Gov-Terms-AI/static/css/main.c7a2f243.css.map",
-    "main.c40af73f.js.map": "/Gov-Terms-AI/static/js/main.c40af73f.js.map"
+    "main.a581ea61.css.map": "/Gov-Terms-AI/static/css/main.a581ea61.css.map",
+    "main.7cf2db34.js.map": "/Gov-Terms-AI/static/js/main.7cf2db34.js.map"
   },
   "entrypoints": [
-    "static/css/main.c7a2f243.css",
-    "static/js/main.c40af73f.js"
+    "static/css/main.a581ea61.css",
+    "static/js/main.7cf2db34.js"
   ]
 }

@@ -4,23 +4,17 @@ import React from 'react';
 const AboutPanel = () => (
   <div>
     <h3>Purpose</h3>
-    <p>Gov Terms AI helps you understand Australian government terminology, abbreviations, and acronyms using advanced AI technology.</p>
+    <p>Gov Terms AI explains Australian Government terms, acronyms and abbreviations in plain language for the public and APS employees.</p>
     
     <h3>How It Works</h3>
-    <p>The system searches through terms extracted from Annual Reports of 130+ agencies from <a href="https://www.transparency.gov.au/" target="_blank" rel="noopener noreferrer">transparency.gov.au</a> and other government sources.</p>
-    
-    <h3>Technology</h3>
-    <ul>
-      <li>Semantic search using vector embeddings</li>
-      <li>Retrieval-Augmented Generation (RAG) Pipeline</li>
-      <li>AI-powered explanations</li>
-      <li>Real-time term lookup</li>
-      <li>Context-aware responses</li>
-    </ul>
-    
-    <h3>Created by:</h3>
+    <p>The system searches terms extracted from the annual reports of more than 130 agencies published on <a href="https://www.transparency.gov.au/" target="_blank" rel="noopener noreferrer">transparency.gov.au</a>, along with other government sources.</p>
+
+    <h3>Important Note</h3>
+    <p>AI-generated answers may contain errors or become outdated. Check the cited source and the relevant agency website before relying on an answer for official advice.</p>
+
+    <h3>Created by</h3>
     <p><strong>Hiren Bhavsar</strong></p>
-    <p><strong>Department of Health, Disability and Ageging</strong></p>
+    <p><strong>Department of Health, Disability and Ageing</strong></p>
     <p>
       <a href='mailto:hiren.bhavsar@govteams.gov.au' style={{ color: '#0066cc', textDecoration: 'none' }}>
         hiren.bhavsar@govteams.gov.au

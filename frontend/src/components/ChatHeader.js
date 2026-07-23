@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Icons from './Icons';
 import UserPreferences from './UserPreferences';
 import useUserPreferences from '../hooks/useUserPreferences';
 
 // Chat Box Header Component
-const ChatHeader = ({ isConnected, onShowAbout, onShowHelp }) => {
+const ChatHeader = ({ connectionStatus, onShowAbout, onShowHelp }) => {
   const [isAccessibilityMenuVisible, setAccessibilityMenuVisible] = useState(false);
+  const accessibilityButtonRef = useRef(null);
+  const accessibilityMenuRef = useRef(null);
   const { isDarkMode, toggleDarkMode, changeFontSize } = useUserPreferences();
-
-
+  const connectionLabels = {
+    connecting: 'Connecting to backend…',
+    connected: 'Connected to backend',
+    disconnected: 'Backend unavailable'
+  };
+  const connectionLabel = connectionLabels[connectionStatus] || connectionLabels.disconnected;
 
   const handleAbout = () => {
     setAccessibilityMenuVisible(false);
@@ -24,12 +30,36 @@ const ChatHeader = ({ isConnected, onShowAbout, onShowHelp }) => {
     setAccessibilityMenuVisible((prev) => !prev);
   };
 
-  // Close menu when input is focused (user starts typing), but only if menu is open
-  React.useEffect(() => {
-    if (!isAccessibilityMenuVisible) return;
-    const handler = () => setAccessibilityMenuVisible(false);
-    window.addEventListener('input-focus', handler);
-    return () => window.removeEventListener('input-focus', handler);
+  // Close the menu when the user interacts anywhere outside the button or menu.
+  useEffect(() => {
+    if (!isAccessibilityMenuVisible) return undefined;
+
+    const handleOutsideInteraction = (event) => {
+      const clickedButton = accessibilityButtonRef.current?.contains(event.target);
+      const clickedMenu = accessibilityMenuRef.current?.contains(event.target);
+
+      if (!clickedButton && !clickedMenu) {
+        setAccessibilityMenuVisible(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setAccessibilityMenuVisible(false);
+        accessibilityButtonRef.current?.focus();
+      }
+    };
+    const handleInputFocus = () => setAccessibilityMenuVisible(false);
+
+    document.addEventListener('pointerdown', handleOutsideInteraction);
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('input-focus', handleInputFocus);
+
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsideInteraction);
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('input-focus', handleInputFocus);
+    };
   }, [isAccessibilityMenuVisible]);
 
   return (
@@ -40,8 +70,17 @@ const ChatHeader = ({ isConnected, onShowAbout, onShowHelp }) => {
         <h1>IM2026 Gov Terms AI 2.0</h1>
       </div>
       <div className="header-actions">
-        <div className="connection-status">
-          <div className={`status-indicator ${isConnected ? 'connected' : ''}`}></div>
+        <div
+          className="connection-status"
+          role="status"
+          aria-live="polite"
+          title={connectionLabel}
+        >
+          <span
+            className={`status-indicator ${connectionStatus}`}
+            aria-hidden="true"
+          />
+          <span className="connection-status-text">{connectionLabel}</span>
         </div>
         
         <button className="btn btn-icon header-action-button" onClick={handleAbout} title="About">
@@ -56,6 +95,7 @@ const ChatHeader = ({ isConnected, onShowAbout, onShowHelp }) => {
 
         {/* Accessibility Icon */}
         <button
+          ref={accessibilityButtonRef}
           className="btn btn-icon header-action-button"
           onClick={toggleAccessibilityMenu}
           title="Accessibility"
@@ -67,7 +107,7 @@ const ChatHeader = ({ isConnected, onShowAbout, onShowHelp }) => {
 
         {/* Floating Menu as dropdown in header */}
         {isAccessibilityMenuVisible && (
-          <div className="user-preferences-menu">
+          <div ref={accessibilityMenuRef} className="user-preferences-menu">
             <UserPreferences 
               isDarkMode={isDarkMode}
               onToggleDarkMode={toggleDarkMode}
